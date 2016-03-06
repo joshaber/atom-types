@@ -1,3 +1,5 @@
+type Point = {top: number, left: number, bottom: number, right: number} & {row: number, column: number};
+
 declare module 'atom' {
   declare class Disposable {
     dispose(): void;
@@ -26,7 +28,14 @@ declare module 'atom' {
     async: GitRepositoryAsync;
   }
 
+  declare class TextEditorComponent {
+    screenPositionForMouseEvent(e: Event): Point;
+  }
+
   declare class TextEditorElement extends HTMLElement {
+    rootElement: HTMLElement;
+    component: TextEditorComponent;
+
     getModel(): TextEditor;
   }
 
@@ -35,6 +44,8 @@ declare module 'atom' {
     setText(text: string): void;
 
     getPath(): ?string;
+
+    bufferPositionForScreenPosition(p: Point): Point;
   }
 
   declare class Panel<T> {
@@ -56,6 +67,8 @@ declare class Workspace {
 
   buildTextEditor(params: Object): TextEditor;
 
+  observeTextEditors(fn: (editor: TextEditor) => void): Disposable;
+
   addRightPanel<T>(options: {item: T}): Panel<T>;
 }
 
@@ -72,7 +85,8 @@ declare class DeserializerManager {
 }
 
 declare class Project {
-  relativizePath(p: string): string;
+  relativizePath(p: string): [string, string];
+  relativize(p: string): string;
   getPaths(): Array<string>;
 
   getRepositories(): Array<GitRepository>;
