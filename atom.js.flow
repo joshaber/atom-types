@@ -46,6 +46,8 @@ declare module 'atom' {
     getPath(): ?string;
 
     bufferPositionForScreenPosition(p: Point): Point;
+
+    onDidDestroy(fn: Function): void;
   }
 
   declare class Panel<T> {
