@@ -1,3 +1,3 @@
 # atom-types
 
-Types declarations. For Atom.
+Type declarations. For Atom.
