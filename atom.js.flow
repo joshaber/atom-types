@@ -1,12 +1,15 @@
-type Point = {top: number, left: number, bottom: number, right: number} & {row: number, column: number};
-
 declare module 'atom' {
   declare class Disposable {
     dispose(): void;
   }
 
+  declare class Model {
+    destroy(): void;
+  }
+
   declare class CompositeDisposable extends Disposable {
     add(disposable: Disposable): void;
+    remove(disposable: Disposable): void;
   }
 
   declare class Emitter {
@@ -21,7 +24,14 @@ declare module 'atom' {
 
     static open(path: string, options?: Object): GitRepositoryAsync;
 
+    openedPath: string;
+    project: ?Project;
+
+    getPath(): Promise<string>;
     getShortHead(): Promise<string>;
+
+    onDidChangeStatus(fn: Function): Disposable;
+    onDidChangeStatuses(fn: Function): Disposable;
   }
 
   declare class GitRepository {
@@ -39,15 +49,28 @@ declare module 'atom' {
     getModel(): TextEditor;
   }
 
-  declare class TextEditor {
+  declare class Point {
+    row: number;
+    column: number;
+  }
+
+  declare class Cursor extends Model {
+
+  }
+
+  declare class TextEditor extends Model {
     getText(): string;
     setText(text: string): void;
 
     getPath(): ?string;
 
+    getElement(): TextEditorElement;
+
     bufferPositionForScreenPosition(p: Point): Point;
 
-    onDidDestroy(fn: Function): void;
+    onDidChange(fn: Function): Disposable;
+    onDidChangeCursorPosition(fn: (event: {oldBufferPosition: Point, oldScreenPosition: Point, newBufferPosition: Point, newScreenPosition: Point, textChanged: boolean, cursor: Cursor}) => void): Disposable;
+    onDidDestroy(fn: Function): Disposable;
   }
 
   declare class Panel<T> {
@@ -57,19 +80,36 @@ declare module 'atom' {
     hide(): void;
     show(): void;
   }
+
+  declare class Pane extends Model {
+    itemForURI(uri: string): ?any;
+    getItems(): Array<any>;
+    getPendingItem(): ?any;
+
+    destroyItem(item: any): boolean;
+  }
+
+  declare class TextBuffer {
+    onDidSave(fn: Function): Disposable;
+    onDidReload(fn: Function): Disposable;
+    onDidChangePath(fn: Function): Disposable;
+    onDidDestroy(fn: Function): Disposable;
+  }
 }
 
-import type {Disposable, TextEditor, Panel, GitRepository} from 'atom'
+import type {Disposable, TextEditor, Panel, GitRepository, Pane, TextBuffer} from 'atom'
 
 declare class Workspace {
   open(uri: string, options?: Object): Promise<void>;
   addOpener<OptionsType, ItemType>(fn: (uri: string, options: OptionsType) => ItemType): Disposable;
 
-  getActiveTextEditor(): TextEditor;
-
   buildTextEditor(params: Object): TextEditor;
 
+  getActiveTextEditor(): TextEditor;
+
   observeTextEditors(fn: (editor: TextEditor) => void): Disposable;
+
+  getPanes(): Array<Pane>;
 
   addRightPanel<T>(options: {item: T}): Panel<T>;
 }
@@ -87,9 +127,12 @@ declare class DeserializerManager {
 }
 
 declare class Project {
-  relativizePath(p: string): [string, string];
   relativize(p: string): string;
+  relativizePath(p: string): string;
   getPaths(): Array<string>;
+
+  getBuffers(): Array<TextBuffer>;
+  onDidAddBuffer(fn: (buffer: TextBuffer) => void): Disposable;
 
   getRepositories(): Array<GitRepository>;
 }
