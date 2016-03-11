@@ -181,6 +181,8 @@ declare class AtomEnvironment {
   project: Project;
   tooltips: TooltipManager;
   grammars: GrammarRegistry;
+
+  inDevMode(): boolean;
 }
 
 declare var atom: AtomEnvironment;
