@@ -1,3 +1,5 @@
+type MarkerType = 'line' | 'line-number' | 'highlight' | 'overlay' | 'gutter' | 'block'
+
 declare module 'atom' {
   declare class Disposable {
     dispose(): void;
@@ -54,8 +56,20 @@ declare module 'atom' {
     column: number;
   }
 
+  declare class Range {
+
+  }
+
   declare class Cursor extends Model {
 
+  }
+
+  declare class TextEditorMarker {
+    destroy(): void;
+  }
+
+  declare class Decoration {
+    destroy(): void;
   }
 
   declare class TextEditor extends Model {
@@ -67,6 +81,10 @@ declare module 'atom' {
     getElement(): TextEditorElement;
 
     bufferPositionForScreenPosition(p: Point): Point;
+
+    markBufferRange(range: Range, properties?: Object): TextEditorMarker;
+    markBufferPosition(position: Point, properties?: Object): TextEditorMarker;
+    decorateMarker(marker: TextEditorMarker, params: {type: MarkerType, class?: string, item?: any}): Decoration;
 
     onDidChange(fn: Function): Disposable;
     onDidChangeCursorPosition(fn: (event: {oldBufferPosition: Point, oldScreenPosition: Point, newBufferPosition: Point, newScreenPosition: Point, textChanged: boolean, cursor: Cursor}) => void): Disposable;
